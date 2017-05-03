@@ -10,13 +10,15 @@ class User extends Authenticatable
 {
     use Notifiable;
 
+    //TODO  Add Area to database and configure it more
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
-        'phone', 'name', 'email', 'password',
+        'phone', 'email', 'password', 'gender',
     ];
 
     /**
@@ -38,4 +40,21 @@ class User extends Authenticatable
     {
         $this->attributes['password'] = Hash::make($value);
     }
+
+    public function orders()
+    {
+        return $this->hasMany('App\Order');
+    }
+
+    public function cart(){
+        return $this->hasOne('App\Cart');
+    }
+
+//    public function verified()
+//    {
+//        $this->verified = 1;
+//        $this->email_token = null;
+//        $this->save();
+//    }
+
 }

@@ -4,6 +4,7 @@ namespace App\Api\V1\Controllers;
 
 use App\User;
 use Dingo\Api\Contract\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class UsersController
 {
@@ -16,7 +17,7 @@ class UsersController
         return User::all();
     }
 
-    public function userFindByCategory(Request $request, Request $request2){
+    public function userFindByCategory($request, $request2){
         $query = User::query();
 
         //...api/auth/users/?category=cleaners&gender=female
@@ -30,18 +31,10 @@ class UsersController
         }
 
         $users = $query->get();
-        return $users;
+        return response()->json([
+            "Users" => $users
+        ]);
     }
-
-
-    //@Path("/todo/{varX}/{varY}")
-    //@Produces({"application/xml", "application/json"})
-//    public function todoWhatYouLike(@PathParam("varX") String varX, @PathParam("varY") String varY) {
-//            User todo = new User();
-//            todo.setSummary(varX);
-//            todo.setDescription(varY);
-//            return todo;
-//    }
 
     /**
      * Display the specified resource.
@@ -50,7 +43,17 @@ class UsersController
      */
     public function show($id)
     {
-        return \App\User::where('id',$id)->take(1)->get();
+        $query = User::query();
+
+        if($id) {
+            $query->where('id', $id);
+        }
+
+        $user = $query->get();
+
+        return response()->json([
+            'user' => $user
+        ], 200);
     }
 
     /**
@@ -58,9 +61,23 @@ class UsersController
      * @param  int  $id
      * @return Response
      */
-    public function edit($id)
+    public function edit(Request $request, $id)
     {
+        $query = User::query();
+
+        if($id) {
+            $query->where('id', $id);
+        }
+
+        if(!$query->update($request->all())) {
+            throw new HttpException(500);
+        }
+
+        return response()->json([
+            'user' => User::where('id', $id)->get()
+        ], 200);
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -74,22 +91,9 @@ class UsersController
         }
         else{
             return response()->json([
-                'status' => 'ok',
                 $user
             ], 201);
         }
-
-//        $input = \Input::json();
-//        $users = new User($request->all());
-//        $users->name = $input->get('name');
-//        $users->email = $input->get('email');
-//        $users->password = $input->get('password');
-//        $users->save();
-//
-//        return response($users)->json([
-//            'status' => 'ok',
-//        ], 201);
-        //return response($users, 201);
     }
 
     /**
@@ -109,6 +113,37 @@ class UsersController
         return response($users, 200)
             ->header('Content-Type', 'application/json');
     }
+
+    /**
+     * Change user password with give id
+     * @param  int  $id
+     * @return Response
+     */
+    public function changePassword(Request $request, $id)
+    {
+        if($id) {
+            $user = User::query()->where('id', $id);
+        }
+
+        $oldPassword = $request['old_password'];
+        $newPassword = $request['new_password'];
+
+        $checkOldPassword = User::query()->where('id', $id)->value('password');
+
+        if($oldPassword && $checkOldPassword){
+            if (!Hash::check($oldPassword, $checkOldPassword)){
+                return response()->json([
+                    "status" => "error",
+                ], 404);
+            }
+            $newHashPassword = Hash::make($newPassword);
+            $user->update(['password' => $newHashPassword]);
+        }
+        return response()->json([
+            'status' => 'success'
+        ], 200);
+    }
+
 
     /**
      * Remove the specified resource from storage.

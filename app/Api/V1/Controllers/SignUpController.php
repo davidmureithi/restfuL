@@ -1,9 +1,10 @@
 <?php
 
 namespace App\Api\V1\Controllers;
-
 use Config;
 use App\User;
+use Illuminate\Support\Facades\Mail;
+use Input;
 use Tymon\JWTAuth\JWTAuth;
 use App\Http\Controllers\Controller;
 use App\Api\V1\Requests\SignUpRequest;
@@ -18,14 +19,21 @@ class SignUpController extends Controller
             throw new HttpException(500);
         }
 
+        Mail::send('emails.verify_registration', array($user), function($message) {
+            $message->to(Input::get('email'))
+                ->subject('Welcome to chupachap');
+        });
+
+        $token = $JWTAuth->fromUser($user);
         if(!Config::get('boilerplate.sign_up.release_token')) {
             return response()->json([
-                'status' => 'ok',
-                $user
+                'token' => [
+                    'token' => $token
+                ],
+                'user' => $user
             ], 201);
         }
 
-        $token = $JWTAuth->fromUser($user);
         return response()->json([
             'status' => 'ok',
             'token' => $token

@@ -1,10 +1,3 @@
-
-    {{--{{Form::open(array('url'=>'/','method'=>'post'))}}--}}
-
-    {{--{{Form::text('link',Input::old('link'),array('placeholder'=>'Insert your URL here and press enter!'))}}--}}
-    {{----}}
-    {{--{{Form::close()}}--}}
-
     @extends('layouts.master')
     @section('content')
         <div id="contact-page" class="container">
@@ -16,13 +9,14 @@
                         {{--</div>--}}
                     </div>
                 </div>
-                @include('flash::message')
 
                 @if(session()->has('success'))
-                    <h3 class="error">
-                        The Agent was successfully Added.
-                    </h3>
+                    <div class="alert-box success">
+                        <h2>{!! Session::get('success') !!}</h2>
+                    </div>
                 @endif
+
+                @include('flash::message')
                 @if (session()->has('flash_notification.message'))
                     <div class="alert alert-{{ session('flash_notification.level') }}">
                         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
@@ -30,18 +24,16 @@
                     </div>
                 @endif
 
-
-
                 <div class="row">
                     <div class="col-sm-8">
                         <div class="contact-form">
                             <h2 class="title text-center">Agent Details</h2>
                             <div class="status alert alert-success" style="display: none"></div>
-                            {{--{{Form::open(array('url'=>'/','action' => 'store', 'method'=>'post', 'id' => 'main-contact-form', 'class' => 'contact-form row', 'name' => 'contact-form'))}}--}}
-                            <form action="store" id="main-contact-form" class="contact-form row" name="contact-form" method="post">
+
+                            {!! Form::open(array('url'=>'store','method'=>'POST', 'files'=>true)) !!}
                                 <div class="form-group col-md-4">
                                     <input type="hidden" name="_token" value="{{ csrf_token() }}" />
-                                    <img class="img-responsive profile-img margin-bottom-20"  alt="" name="avatar" id="avatar">
+                                    <img class="img-responsive profile-img margin-bottom-20"  alt="" name="avatar" id="avatarID">
                                     <input type="file" class="btn btn-sm btn-info" value="Edit Image" name="image" id="image">
                                 </div>
 
@@ -51,6 +43,7 @@
                                 <div class="form-group col-md-4">
                                     <input type="email" name="email" class="form-control" required="required" placeholder="Email">
                                 </div>
+
                                 <div class="form-group col-md-6">
                                     <input type="tel" name="mobile" class="form-control" required="required" placeholder="Phone Number">
                                 </div>
@@ -68,23 +61,53 @@
                                 </div>
 
                                 <div class="form-group col-md-12">
-                                    <input type="text" name="category" class="form-control" required="required" placeholder="Service Category">
-                                    {{Form::select('size', array('L' => 'Large', 'S' => 'Small'))}}
+                                    {{Form::select('category',
+                                                   array(
+                                                            '' => 'Select category that best describes what you do',
+                                                            'gas' => 'Cooking Gas',
+                                                            'cleaners' => 'Home Cleaning Services',
+                                                            'laundry' => 'Laundry Services',
+                                                            'houses' => 'Housing Services',
+                                                            'plumbing' => 'Plumbing Services',
+                                                            'electricity' => 'Electrical Services',
+                                                            'fundi' => 'Fundi (General) Services',
+                                                            'pest' => 'Pest Control Services',
+                                                            'painting' => 'Painting Services',
+                                                            'appliance' => 'Appliance Repair Services',
+                                                            'relocation' => 'Relocation & Transport Services',
+                                                            'crane' => 'Towing (Crane) Services',
+                                                            'mechanic' => 'Mechanical Services',
+                                                        )
+                                        )}}
                                 </div>
 
                                 <div class="form-group col-md-12">
-                                    <input type="text" name="about" class="form-control" required="required" placeholder="How did you hear about us">
+                                    {{Form::select('heard_of_us',
+                                               array(
+                                                        ''=> 'How did you hear about us',
+                                                        'Facebook' => 'Through Facebook',
+                                                        'Google' => 'Through Google',
+                                                        'Friend' => 'Through a Friend',
+                                                        'Not_Saying' => 'Prefer not to say',
+                                                        'Dont_Know' => 'I cant remember'
+                                                    )
+                                    )}}
                                 </div>
 
                                 <div class="form-group col-md-12">
-                                    <textarea name="message" id="message" required="required" class="form-control" rows="8" placeholder="About You / Company"></textarea>
+                                    <textarea name="about" id="message" required="required" class="form-control" rows="8" placeholder="About You / Company"></textarea>
                                 </div>
 
+                                <p class="errors">{!!$errors->first('image')!!}</p>
+                                @if(Session::has('error'))
+                                    <p class="errors">{!! Session::get('error') !!}</p>
+                                @endif
+
                                 <div class="form-group col-md-12">
-                                    <input type="submit" name="submit" class="btn btn-primary pull-right" value="Register">
+                                    {!! Form::submit('Register', array('class'=>'btn btn-primary pull-right')) !!}
                                 </div>
-                            </form>
-                            {{--{{Form::close()}}--}}
+                                <div id="success"> </div>
+                            {{Form::close()}}
                         </div>
                     </div>
                     <div class="col-sm-4">
@@ -102,16 +125,19 @@
                                 <h2 class="title text-center">Find us Online</h2>
                                 <ul>
                                     <li>
-                                        <a href="#"><i class="fa fa-facebook"></i></a>
+                                        <a href="https://www.facebook.com/spotpata.co.ke/"><i class="fa fa-facebook"></i></a>
                                     </li>
                                     <li>
-                                        <a href="#"><i class="fa fa-twitter"></i></a>
+                                        <a href="https://twitter.com/spotpata"><i class="fa fa-twitter"></i></a>
                                     </li>
                                     <li>
                                         <a href="#"><i class="fa fa-google-plus"></i></a>
                                     </li>
                                     <li>
                                         <a href="#"><i class="fa fa-youtube"></i></a>
+                                    </li>
+                                    <li>
+                                        <a href="https://www.instagram.com/spotpata/"><i class="fa fa-instagram"></i></a>
                                     </li>
                                 </ul>
                             </div>
@@ -120,4 +146,3 @@
                 </div>
             </div>
         </div>
-    @endsection
